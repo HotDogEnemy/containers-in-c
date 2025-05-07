@@ -6,16 +6,21 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdlib.h>
+#include "alpine_init.h"
+
+#define CONTAINER_DEFAULT_ROOT "/home/shivodit/Documents/sp-project/container-root"
 
 int clone_func(void * args) {
 	char hostname[1024];
 	// clear environment variables so that they dont leak in the new shell
 	clearenv();
+	// fetch the alpine minirootfs from the mirror
+	init_root_FS(CONTAINER_DEFAULT_ROOT);
 	// chroot to new root dir
 	// TODO: error handling for chroot
 	// TODO: take root directory as commandline argument, if it does not exist or is not provided then d
 	// use a diretory in /tmp for chroot
-	if (chroot("/home/shivodit/Documents/sp-project/container-root")) { //returns 0 when successful
+	if (chroot(CONTAINER_DEFAULT_ROOT)) { //returns 0 when successful
 		printf("Cannot chroot to container-root directory!\n");
 		exit(1);
 	}
