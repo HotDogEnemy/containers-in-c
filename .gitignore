@@ -52,7 +52,7 @@ Mkfile.old
 dkms.conf
 
 # container-root
-container-root
+container-root/
 
 # build folder
 build

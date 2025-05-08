@@ -3,16 +3,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sched.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "alpine_init.h"
 
 int init_root_FS(const char * rootpath) {
+	char stack[1024];
 	// get the full qualified path for the archive
 	char * fullpath = (char * ) malloc(strlen(rootpath) + strlen(ALPINE_ARCHIVE_NAME));
 	strcpy(fullpath, rootpath);
 	strcat(fullpath, ALPINE_ARCHIVE_NAME);
 	fetch_from_URL(fullpath);
-	unpack_archive(fullpath);
+	int unpack_child_id = clone(unpack_archive, stack + 1024, SIGCHLD, fullpath);
+	wait(&unpack_child_id);
+	return 0;
 }
 
 int fetch_from_URL(const char * rootpath) {
@@ -41,7 +47,9 @@ int unpack_archive(const char * archive_path) {
 		"/bin/tar",
 		"xvf",
 		archive_path,
+		"-C",
+		"container-root",
 		NULL
 	};
 	execv(args[0], args);
-}	
+}

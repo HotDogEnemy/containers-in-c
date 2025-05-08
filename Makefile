@@ -2,7 +2,7 @@ ROOTDIR := $(PWD)
 CC := gcc
 CFLAGS := -lcurl
 BUILD_DIR := $(PWD)/build
-objects = main.o alpine_init.o
+objects = main.o alpine_init.o cgroup_config.o
 
 container: $(objects)
 	$(CC) -o $(BUILD_DIR)/$@ $(foreach file,$(objects),$(BUILD_DIR)/$(file)) $(CFLAGS)
