@@ -49,9 +49,17 @@ int clone_func(void * args) {
 }
 
 int clone_process() {
-	char stack[1024];
-	int procid = clone(clone_func, stack + 1024, SIGCHLD | CLONE_NEWUTS | CLONE_NEWPID, NULL);
+	char stack[4096];
+	struct cgroup_options cgroup_opts = (struct cgroup_options) {500, 1000, 0, 7};
+	init_cgroups();
+	configure_cgroup_limits(cgroup_opts);
+	printf("Done configuring cgroup limits. \n");
+	int procid = clone(clone_func, stack + 4096, SIGCHLD | CLONE_NEWUTS | CLONE_NEWPID, NULL);
+	printf("Successfully launched child.\n");
+	add_pid_to_cgroup(procid);
+	printf("Added child pid to cgroup");
 	wait(&procid);
+	cleanup_cgroup();
 	return procid;
 }
 

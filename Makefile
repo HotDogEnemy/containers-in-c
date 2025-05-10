@@ -1,6 +1,6 @@
 ROOTDIR := $(PWD)
 CC := gcc
-CFLAGS := -lcurl
+CFLAGS := -lcurl -g
 BUILD_DIR := $(PWD)/build
 objects = main.o alpine_init.o cgroup_config.o
 
