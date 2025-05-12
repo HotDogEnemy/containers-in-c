@@ -5,19 +5,37 @@
 #include <unistd.h>
 #include <sched.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 
 #include "alpine_init.h"
 
+struct unpack_paths {
+	char fullpath[1024];
+	char rootpath[1024];
+};
+
 int init_root_FS(const char * rootpath) {
 	char stack[1024];
+	struct unpack_paths *paths = (struct unpack_paths*) malloc(sizeof(struct unpack_paths));
 	// get the full qualified path for the archive
 	char * fullpath = (char * ) malloc(strlen(rootpath) + strlen(ALPINE_ARCHIVE_NAME));
+	printf("rootpath = %s\n", rootpath);
+	mkdir(rootpath, S_IRUSR | S_IWUSR);
 	strcpy(fullpath, rootpath);
 	strcat(fullpath, ALPINE_ARCHIVE_NAME);
+	printf("fullpath = %s\n", fullpath);
 	fetch_from_URL(fullpath);
-	int unpack_child_id = clone(unpack_archive, stack + 1024, SIGCHLD, fullpath);
+
+	strcpy(paths->fullpath, fullpath);
+	strcpy(paths->rootpath, rootpath);
+
+	printf("\tpaths->fullpath = %s\n\tpaths->rootpath = %s\n", paths->fullpath, paths->rootpath);
+
+	int unpack_child_id = clone(unpack_archive, stack + 1024, SIGCHLD, paths);
 	wait(&unpack_child_id);
+	remove(paths->fullpath);
+	free(paths);
 	return 0;
 }
 
@@ -42,13 +60,15 @@ int fetch_from_URL(const char * rootpath) {
 	}
 }
 
-int unpack_archive(const char * archive_path) {
+int unpack_archive(void * arg) {
+	struct unpack_paths *paths = (struct unpack_paths *) arg;
+	printf("Unpack archive:\n archive_path = %s\n containerdir = %s\n", paths->fullpath, paths->rootpath);
 	char * args[] = {
 		"/bin/tar",
 		"xvf",
-		archive_path,
+		paths->fullpath,
 		"-C",
-		"container-root",
+		paths->rootpath,
 		NULL
 	};
 	execv(args[0], args);
