@@ -5,6 +5,18 @@
 #include <string.h>
 #include <unistd.h>
 
+const char helpstr[] = ""
+    "Usage:\n"
+    "\t container [OPTIONS] \n"
+    "Supported Options: \n"
+    "\t -c <num> \tSet max CPU limit for container child process\n"
+    "\t -d <dir> \tSet container root directory\n"
+    "\t -h       \tDisplay help message\n"
+    "\t -m <mb>  \tSet max memory limit\n"
+    "\t -p <num> \tSet max child PID limit for the container process\n"
+    "\t -s <mb>  \tSet max swap limit for the container process\n"
+;
+
 /*
     Set up arg parsing. Supported list of args:
     d: Set directory for container root
@@ -19,7 +31,7 @@ int parse_args(int argc, char ** argv, struct argopts *config) {
         return 0;  // we cant set parameters when config is null
     }
 
-    while ((c = getopt(argc, argv, "d:m:c:s:p:")) != -1) {
+    while ((c = getopt(argc, argv, "d:m:c:s:p:h")) != -1) {
         switch (c) {
             case 'd':
                 printf("d = %s\n", optarg);
@@ -40,6 +52,10 @@ int parse_args(int argc, char ** argv, struct argopts *config) {
             case 'p':
                 printf("p = %s\n");
                 config->pidlimit = atoi(optarg);
+                break;
+            case 'h':
+                printf("%s", helpstr);
+                exit(0);
                 break;
         }
     }
